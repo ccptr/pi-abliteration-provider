@@ -1,7 +1,7 @@
 {
   "name": "pi-abliteration-provider",
   "version": "0.1.0",
-  "description": "pi provider for abliteration.ai models, with live model discovery",
+  "description": "pi provider for abliteration.ai, with models loaded from the API",
   "keywords": [
     "pi-package",
     "pi",
@@ -12,7 +12,7 @@
   "type": "module",
   "files": [
     "index.ts",
-    "models.ts",
+    "catalog.ts",
     "README.md"
   ],
   "scripts": {

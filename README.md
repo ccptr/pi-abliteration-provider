@@ -2,8 +2,8 @@
 
 A [pi](https://pi.dev) provider for [abliteration.ai](https://abliteration.ai).
 
-- Registers the `abliteration` provider, using pi's built-in OpenAI Chat Completions support.
-- Fetches the live model list from `GET /v1/models`, including names, context sizes, image input, reasoning support and pricing. The list is saved and checked again at most every 6 hours. A built-in list covers the first run and offline use.
+- Loads models from the API's model list (`GET /v1/models`): names, context sizes, image input, reasoning support and pricing. pi saves the list for offline use, `pi -p` and RPC mode.
+- Sends requests through pi's built-in OpenAI Chat Completions support.
 - Maps pi thinking levels to `reasoning_effort`. `off` sends `"none"`, because the models reason by default otherwise.
 
 ## Install
@@ -14,19 +14,13 @@ pi install /path/to/pi-abliteration-provider
 
 ## Authenticate
 
-Either:
-
 ```text
 /login abliteration
 ```
 
-or set the key in the environment:
+or set `ABLITERATION_API_KEY` before starting pi. A key saved with `/login` takes priority.
 
-```bash
-export ABLITERATION_API_KEY=ak_...
-```
-
-A key saved with `/login` takes priority over the environment variable.
+pi loads the model list after `/login`, when interactive pi starts, and when `/model` opens. Until it has loaded once, the provider has no models, so start interactive pi once before using `pi -p`.
 
 ## Use
 
@@ -35,16 +29,9 @@ pi --model abliteration/abliterated-model-large-flash
 pi --model abliteration/abliterated-model:high
 ```
 
-| Model | Context | Images | Price (in / out per 1M tokens) |
-|---|---|---|---|
-| `abliterated-model` | 262K | yes | $1 / $3 |
-| `abliterated-model-large` | 1M | no | $3 / $5 |
-| `abliterated-model-large-v2` | 1M | no | $3 / $5 |
-| `abliterated-model-large-flash` | 1M | yes | $1 / $2 |
+`pi --list-models abliteration` shows the models available to your key.
 
-Prices are from the catalog as of 2026-11-01; pi uses whatever the API reports.
-
-The default output limit is capped at 65,536 tokens. The API allows almost the full context window, which lets a single runaway reply use all of it. Raise it with a `modelOverrides` entry in `~/.pi/agent/models.json` if needed:
+The default output limit is 65,536 tokens, because the API allows almost the whole context window per reply. Change it per model with `modelOverrides` in `~/.pi/agent/models.json`:
 
 ```json
 {
@@ -66,8 +53,7 @@ Checked against the live API on 2026-11-01:
 | Accepts `max_completion_tokens` | `maxTokensField: "max_completion_tokens"` |
 | Streams usage with `stream_options.include_usage` | `supportsUsageInStreaming: true` |
 | `reasoning_effort` accepts `none`, `minimal`, `low`, `medium`, `high`, `xhigh` and `max` | `thinkingFormat: "openai"`, `thinkingLevelMap: { off: "none", xhigh: "xhigh", max: "max" }` |
-| Streams reasoning in `delta.reasoning` | read by pi by default |
-| Standard streamed tool calls | no setting needed |
+| Streams reasoning in `delta.reasoning` and tool calls in the standard format | no setting needed |
 
 ## Develop
 
@@ -77,4 +63,4 @@ npm run check   # typecheck + tests
 pi -e . --model abliteration/abliterated-model-large-flash
 ```
 
-The tests use a saved `/v1/models` response (`test/models-response.json`) and make no network requests.
+The tests use a saved model list response (`test/models-response.json`) and make no network requests.
