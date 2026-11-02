@@ -24,8 +24,26 @@ const COMPAT: AbliterationModel["compat"] = {
 	thinkingFormat: "openai",
 };
 
-/** pi thinking level -> `reasoning_effort`; other levels are sent under their own name. */
-const THINKING_LEVEL_MAP: AbliterationModel["thinkingLevelMap"] = { off: "none", xhigh: "xhigh", max: "max" };
+type ThinkingLevelMap = NonNullable<AbliterationModel["thinkingLevelMap"]>;
+
+/**
+ * pi thinking level -> `reasoning_effort`, for models whose levels are all distinct.
+ * Levels without a value are sent under their own name.
+ */
+const ALL_LEVELS: ThinkingLevelMap = { off: "none", xhigh: "xhigh", max: "max" };
+
+/**
+ * Models with fewer distinct levels, from https://docs.abliteration.ai/capabilities/thinking.md
+ * (the model list does not report them). The API accepts every level name, but runs the
+ * missing ones as one of these, so they are marked null: pi hides them and moves a
+ * requested one up to the next real level.
+ */
+const LIMITED_LEVELS: Record<string, ThinkingLevelMap> = {
+	"abliterated-model-large-flash": { off: "none", minimal: null, low: "low", medium: null, high: "high", xhigh: null, max: "max" },
+	"abliterated-model-large": { off: "none", minimal: null, low: null, medium: null, high: "high", xhigh: null, max: "max" },
+	// Cannot turn reasoning off: "none" still reasons at low and only hides the trace.
+	"abliterated-model-large-v2": { off: null, minimal: null, low: "low", medium: null, high: "high", xhigh: null, max: "max" },
+};
 
 /** Turn a `GET /models` response into pi models. Entries that cannot serve chat are skipped. */
 export function parseCatalog(body: unknown, baseUrl: string): AbliterationModel[] {
@@ -54,7 +72,7 @@ function parseModel(entry: unknown, baseUrl: string): AbliterationModel | undefi
 		provider: PROVIDER_ID,
 		baseUrl,
 		reasoning,
-		...(reasoning ? { thinkingLevelMap: THINKING_LEVEL_MAP } : {}),
+		...(reasoning ? { thinkingLevelMap: LIMITED_LEVELS[id] ?? ALL_LEVELS } : {}),
 		input: list(entry.input_modalities).includes("image") ? ["text", "image"] : ["text"],
 		cost: {
 			input: perMillion(pricing.prompt),

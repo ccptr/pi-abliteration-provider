@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import type { ModelsPublication, RefreshModelsContext } from "@earendil-works/pi-ai";
+import {
+	clampThinkingLevel,
+	getSupportedThinkingLevels,
+	type ModelsPublication,
+	type RefreshModelsContext,
+} from "@earendil-works/pi-ai";
 import { MAX_OUTPUT_TOKENS, PROVIDER_ID, parseCatalog } from "../catalog.ts";
 import { abliterationProvider, BASE_URL } from "../index.ts";
 
@@ -19,7 +24,7 @@ test("maps every field the API reports", () => {
 		provider: PROVIDER_ID,
 		baseUrl: BASE_URL,
 		reasoning: true,
-		thinkingLevelMap: { off: "none", xhigh: "xhigh", max: "max" },
+		thinkingLevelMap: { off: "none", minimal: null, low: "low", medium: null, high: "high", xhigh: null, max: "max" },
 		input: ["text", "image"],
 		cost: { input: 1, output: 2, cacheRead: 0.1, cacheWrite: 0 },
 		contextWindow: 1048576,
@@ -32,6 +37,29 @@ test("maps every field the API reports", () => {
 			thinkingFormat: "openai",
 		},
 	});
+});
+
+test("offers only the thinking levels each model really has", () => {
+	const levels = Object.fromEntries(
+		parseCatalog(response, BASE_URL).map((model) => [model.id, getSupportedThinkingLevels(model)]),
+	);
+	assert.deepEqual(levels, {
+		"abliterated-model": ["off", "minimal", "low", "medium", "high", "xhigh", "max"],
+		"abliterated-model-large": ["off", "high", "max"],
+		"abliterated-model-large-v2": ["low", "high", "max"],
+		"abliterated-model-large-flash": ["off", "low", "high", "max"],
+	});
+	const flash = parseCatalog(response, BASE_URL).find((model) => model.id === "abliterated-model-large-flash")!;
+	assert.equal(clampThinkingLevel(flash, "minimal"), "low");
+	assert.equal(clampThinkingLevel(flash, "medium"), "high");
+});
+
+test("models the guide does not cover keep every level", () => {
+	const [model] = parseCatalog(
+		{ data: [{ id: "new-model", context_length: 8192, output_modalities: ["text"], supported_features: ["reasoning"] }] },
+		BASE_URL,
+	);
+	assert.deepEqual(getSupportedThinkingLevels(model), ["off", "minimal", "low", "medium", "high", "xhigh", "max"]);
 });
 
 test("skips entries that cannot serve chat", () => {

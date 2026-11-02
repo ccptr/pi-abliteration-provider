@@ -4,7 +4,7 @@ A [pi](https://pi.dev) provider for [abliteration.ai](https://abliteration.ai).
 
 - Loads models from the API's model list (`GET /v1/models`): names, context sizes, image input, reasoning support and pricing. pi saves the list for offline use, `pi -p` and RPC mode.
 - Sends requests through pi's built-in OpenAI Chat Completions support.
-- Maps pi thinking levels to `reasoning_effort`. `off` sends `"none"`, because the models reason by default otherwise.
+- Maps pi thinking levels to `reasoning_effort`, offering only the levels each model really has (see [Thinking levels](#thinking-levels)). `off` sends `"none"`, because the models reason by default otherwise.
 
 ## Install
 
@@ -43,6 +43,19 @@ The default output limit is 65,536 tokens, because the API allows almost the who
 }
 ```
 
+## Thinking levels
+
+The API accepts every pi level name, but most models run some of them as another level. The provider offers only the distinct ones, following abliteration.ai's [thinking guide](https://docs.abliteration.ai/capabilities/thinking.md). If you ask for a level a model doesn't have, pi moves it up to the next one it does have.
+
+| Model | Levels in pi |
+|---|---|
+| `abliterated-model` | off, minimal, low, medium, high, xhigh, max |
+| `abliterated-model-large-flash` | off, low, high, max |
+| `abliterated-model-large` | off, high, max |
+| `abliterated-model-large-v2` | low, high, max (it cannot turn reasoning off) |
+
+The model list does not report levels, so this table lives in `catalog.ts`. Models it doesn't name get every level.
+
 ## API behavior this relies on
 
 Checked against the live API on 2026-11-01:
@@ -52,7 +65,7 @@ Checked against the live API on 2026-11-01:
 | Accepts the `developer` role | `supportsDeveloperRole: true` |
 | Accepts `max_completion_tokens` | `maxTokensField: "max_completion_tokens"` |
 | Streams usage with `stream_options.include_usage` | `supportsUsageInStreaming: true` |
-| `reasoning_effort` accepts `none`, `minimal`, `low`, `medium`, `high`, `xhigh` and `max` | `thinkingFormat: "openai"`, `thinkingLevelMap: { off: "none", xhigh: "xhigh", max: "max" }` |
+| Reasoning is set with `reasoning_effort`; `"none"` turns it off | `thinkingFormat: "openai"`, per-model `thinkingLevelMap` |
 | Streams reasoning in `delta.reasoning` and tool calls in the standard format | no setting needed |
 
 ## Develop
