@@ -31,17 +31,19 @@ pi --model abliteration/abliterated-model:high
 
 `pi --list-models abliteration` shows the models available to your key.
 
-The default output limit is 65,536 tokens, because the API allows almost the whole context window per reply. Change it per model with `modelOverrides` in `~/.pi/agent/models.json`:
+Each model's output limit is the maximum the API reports, which is close to its whole context window. pi lowers it to the room left after the prompt. Reasoning counts toward the same limit. To set a lower limit, add `modelOverrides` to `~/.pi/agent/models.json`:
 
 ```json
 {
   "providers": {
     "abliteration": {
-      "modelOverrides": { "abliterated-model-large": { "maxTokens": 200000 } }
+      "modelOverrides": { "abliterated-model-large": { "maxTokens": 65536 } }
     }
   }
 }
 ```
+
+pi re-reads the file when `/model` opens or pi restarts.
 
 ## Thinking levels
 

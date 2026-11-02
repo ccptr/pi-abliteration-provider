@@ -7,7 +7,7 @@ import {
 	type ModelsPublication,
 	type RefreshModelsContext,
 } from "@earendil-works/pi-ai";
-import { MAX_OUTPUT_TOKENS, PROVIDER_ID, parseCatalog } from "../catalog.ts";
+import { PROVIDER_ID, parseCatalog } from "../catalog.ts";
 import { abliterationProvider, BASE_URL } from "../index.ts";
 
 // A real GET /v1/models response.
@@ -28,7 +28,7 @@ test("maps every field the API reports", () => {
 		input: ["text", "image"],
 		cost: { input: 1, output: 2, cacheRead: 0.1, cacheWrite: 0 },
 		contextWindow: 1048576,
-		maxTokens: MAX_OUTPUT_TOKENS,
+		maxTokens: 262144,
 		compat: {
 			supportsDeveloperRole: true,
 			supportsReasoningEffort: true,

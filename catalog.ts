@@ -5,12 +5,6 @@ export type AbliterationModel = Model<"openai-completions">;
 export const PROVIDER_ID = "abliteration";
 
 /**
- * Upper bound on the output tokens pi requests by default. The API reports output
- * limits close to the whole context window, which would let one reply use all of it.
- */
-export const MAX_OUTPUT_TOKENS = 65536;
-
-/**
  * Request behavior checked against the live API:
  * - accepts the `developer` role and `max_completion_tokens`
  * - streams usage when `stream_options.include_usage` is set
@@ -81,7 +75,7 @@ function parseModel(entry: unknown, baseUrl: string): AbliterationModel | undefi
 			cacheWrite: 0,
 		},
 		contextWindow,
-		maxTokens: Math.min(count(entry.max_output_length) ?? contextWindow, contextWindow, MAX_OUTPUT_TOKENS),
+		maxTokens: Math.min(count(entry.max_output_length) ?? contextWindow, contextWindow),
 		compat: COMPAT,
 	};
 }
