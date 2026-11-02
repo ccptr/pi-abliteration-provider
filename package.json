@@ -1,0 +1,41 @@
+{
+  "name": "pi-abliteration-provider",
+  "version": "0.1.0",
+  "description": "pi provider for abliteration.ai models, with live model discovery",
+  "keywords": [
+    "pi-package",
+    "pi",
+    "provider",
+    "abliteration"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "files": [
+    "index.ts",
+    "models.ts",
+    "README.md"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --test test/",
+    "check": "npm run typecheck && npm test"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-coding-agent": "*"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-ai": "1.4.0",
+    "@earendil-works/pi-coding-agent": "1.4.0",
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0"
+  },
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "pi": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}
